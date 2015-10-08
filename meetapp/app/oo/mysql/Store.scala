@@ -1,42 +1,46 @@
 package org.hablapps.meetup.oo.mysql
 
+import scala.concurrent.{Await, Future, duration, ExecutionContext}
+import ExecutionContext.Implicits.global
+import duration._
+
 import org.hablapps.meetup.oo.logic, logic._
 import org.hablapps.meetup.common.logic.Domain._
 import org.hablapps.meetup.common.mysql.Domain._
 
-import play.api.Play.current
-import play.api.db.slick.DB
-
-import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException
-import scala.slick.driver.MySQLDriver.simple._
-
-
 trait Store extends logic.Store{
+  import dbConfig._, driver.api._
 
-
-
-
-  def getGroup(gid: Int): Group = 
-    DB.withSession { implicit session =>
-      group_table.byID(Some(gid)).firstOption.get
-    }
+  def getGroup(gid: Int): Future[Group] = 
+    db.run(group_table.byID(Some(gid)).result.head)
+      .transform(identity, {
+        case _: java.util.NoSuchElementException => 
+          NonExistentEntity(gid)
+      })
+  
+  def getGroup2(gid: Int): Group = {
+    val f = db.run(group_table.byID(Some(gid)).result.head)
+              .transform(identity, {
+                case _: java.util.NoSuchElementException => 
+                  NonExistentEntity(gid)
+              })
+    Await.result(f, 0 seconds)
+  }
    
-  def getUser(uid: Int): User =  
-    DB.withSession { implicit session =>
-      user_table.byID(Some(uid)).firstOption.get
-    }
+  def getUser(uid: Int): Future[User] =  
+    db.run(user_table.byID(Some(uid)).result.head)
+      .transform(identity, {
+        case _: java.util.NoSuchElementException => 
+          NonExistentEntity(uid)
+      })
     
-  def putJoin(join: JoinRequest): JoinRequest = 
-    DB.withSession { implicit session =>
-      val maybeId = join_table returning join_table.map(_.jid) += join
-      join.copy(jid = maybeId)
-    }
+  def putJoin(join: JoinRequest): Future[JoinRequest] = 
+    db.run((join_table returning join_table.map(_.jid)
+                into ((req,id) => req.copy(jid = id))) += join)
 
-  def putMember(member: Member): Member = 
-    DB.withSession { implicit session =>
-      val maybeId = member_table returning member_table.map(_.mid) += member
-      member.copy(mid = maybeId)
-    }
+  def putMember(member: Member): Future[Member] =
+    db.run((member_table returning member_table.map(_.mid)
+                into ((mem,id) => mem.copy(mid = id))) += member)
 
 
 

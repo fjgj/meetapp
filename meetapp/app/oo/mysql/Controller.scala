@@ -1,6 +1,7 @@
 package org.hablapps.meetup.oo.mysql
 
-import scala.util.{Try, Success, Failure}
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import play.api._
 import play.api.mvc._
@@ -12,28 +13,26 @@ import org.hablapps.meetup.oo.logic, logic._
 object Members extends Controller{
 
   def add(gid: Int): Action[Int] =
-    Action(parse.json[Int]) { 
+    Action.async(parse.json[Int]) { 
       fromHTTP(gid) andThen
-      (joinRequest => 
-        Try(Services.join(joinRequest))) andThen
+      Services.join andThen
       toHTTP
     }
 
   def fromHTTP(gid: Int): Request[Int] => JoinRequest = 
     request => JoinRequest(None, request.body, gid)
 
-  def toHTTP(response: Try[JoinResponse]): Result = 
-    response match {
-      case Failure(error@NonExistentEntity(id)) => 
-        NotFound(s"${error.msg}")
-      case Failure(error) => 
-        InternalServerError(error.toString)
-      case Success(response) => response fold(
-        joinRequest => 
-          Accepted(s"Join request $joinRequest, left pending for futher processing"),
-        member => 
+  def toHTTP(response: Future[JoinResponse]): Future[Result] = 
+    response.map{
+      case Left(joinRequest) => 
+        Accepted(s"Join request $joinRequest, left pending for futher processing")
+      case Right(member) => 
           Created(Json.toJson(member)(Json.writes[Member]))
-      )
+    }.recover{ 
+      case error@NonExistentEntity(id) => 
+        NotFound(s"${error.msg}")
+      case error => 
+        InternalServerError(error.toString)
     }
 
 }

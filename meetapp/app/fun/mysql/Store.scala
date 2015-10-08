@@ -1,51 +1,43 @@
 package org.hablapps.meetup.fun.mysql
 
+import scala.concurrent.{Await, Future, duration, ExecutionContext}
+import ExecutionContext.Implicits.global
+import duration._
+
 import org.hablapps.meetup.fun.logic, logic._
 import org.hablapps.meetup.common.logic.Domain._
 import org.hablapps.meetup.common.mysql.Domain._
 
-import play.api.db.slick.DB
-import play.api.Play.current
-
-import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException
-import scala.slick.driver.MySQLDriver.simple._
-
-
 object Interpreter{
+  import dbConfig._, driver.api._
 
-  def runInstruction[U](instruction: StoreInstruction[U]): U =
+  def runInstruction[U](instruction: StoreInstruction[U]): Future[U] =
     instruction match {
       
       case GetGroup(gid: Int) => 
-        DB.withSession { implicit session =>
-          group_table.byID(Some(gid)).firstOption.get
-        }
+        db.run(group_table.byID(Some(gid)).result.head)
       
       case GetUser(uid: Int) =>
-        DB.withSession { implicit session =>
-          user_table.byID(Some(uid)).firstOption.get
-        }
-    
+        db.run(user_table.byID(Some(uid)).result.head)
+
       case PutJoin(join: JoinRequest) => 
-        DB.withSession { implicit session =>
-          val maybeId = join_table returning join_table.map(_.jid) += join
-          join.copy(jid = maybeId)
-        }
+        db.run((join_table returning join_table.map(_.jid)
+                into ((req,id) => req.copy(jid = id))) += join)
 
       case PutMember(member: Member) =>
-        DB.withSession { implicit session =>
-          val maybeId = member_table returning member_table.map(_.mid) += member
-          member.copy(mid = maybeId)
-        }
+        db.run((member_table returning member_table.map(_.mid)
+                into ((mem,id) => mem.copy(mid = id))) += member)
 
     }
 
-  def run[U](store: Store[U]): U = store match {
+  def run[U](store: Store[U]): Future[U] = store match {
     case Return(value) => 
-      value
+      Future(value)
     case StoreAndThen(instruction, next) => 
-      val result = runInstruction(instruction)
-      run(next(result))
+      for {
+        result <- runInstruction(instruction)
+        r <- run(next(result))
+      } yield r
   }
 
 }
