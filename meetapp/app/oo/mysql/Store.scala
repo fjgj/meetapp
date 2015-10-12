@@ -20,11 +20,7 @@ trait Store extends logic.Store{
   
   def getGroup2(gid: Int): Group = {
     val f = db.run(group_table.byID(Some(gid)).result.head)
-              .transform(identity, {
-                case _: java.util.NoSuchElementException => 
-                  NonExistentEntity(gid)
-              })
-    Await.result(f, 0 seconds)
+    Await.result(f, Duration.Inf)
   }
    
   def getUser(uid: Int): Future[User] =  
