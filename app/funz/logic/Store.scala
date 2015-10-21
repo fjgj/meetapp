@@ -3,24 +3,24 @@ package org.hablapps.meetup.funz.logic
 import scalaz._, Scalaz._, Free._
 import org.hablapps.meetup.common.logic.Domain._
 
-object Store{
+object StoreProgram{
 
-  def getUser(uid: Int): Store[User] = 
+  def getUser(uid: Int): StoreProgram[User] = 
     liftF(GetUser(uid))
 
-  def getGroup(gid: Int): Store[Group] = 
+  def getGroup(gid: Int): StoreProgram[Group] = 
     liftF(GetGroup(gid))
 
-  def putJoin(req: JoinRequest): Store[JoinRequest] = 
+  def putJoin(req: JoinRequest): StoreProgram[JoinRequest] = 
     liftF(PutJoin(req))
 
-  def putMember(member: Member): Store[Member] = 
+  def putMember(member: Member): StoreProgram[Member] = 
     liftF(PutMember(member))
 
 }
 
 object `package`{
-  import Store._
+  import StoreProgram._
 
   trait StoreInstruction[+_]
   case class GetUser(uid: Int) extends StoreInstruction[User]
@@ -28,12 +28,12 @@ object `package`{
   case class PutJoin(join: JoinRequest) extends StoreInstruction[JoinRequest]
   case class PutMember(member: Member) extends StoreInstruction[Member]
 
-  type Store[U] = Free[StoreInstruction, U]
+  type StoreProgram[U] = Free[StoreInstruction, U]
 
   def Cond[X,Y](
     test: => Boolean,
-    left: => Store[X], 
-    right: => Store[Y]): Store[Either[X,Y]] = 
+    left: => StoreProgram[X], 
+    right: => StoreProgram[Y]): StoreProgram[Either[X,Y]] = 
     if (test)
       left map (Left(_))
     else 

@@ -19,10 +19,10 @@ object Interpreter{
       DB.withSession { implicit session =>
         instruction match {
           case GetGroup(gid: Int) => 
-            group_table.byID(Some(gid)).firstOption.get
+            group_table.byID(Some(gid)).first
         
           case GetUser(uid: Int) =>
-            user_table.byID(Some(uid)).firstOption.get
+            user_table.byID(Some(uid)).first
       
           case PutJoin(join: JoinRequest) => 
             val maybeId = join_table returning join_table.map(_.jid) += join
@@ -35,7 +35,7 @@ object Interpreter{
       } 
   }
 
-  def run[U](store: Store[U]): U = 
+  def run[U](store: StoreProgram[U]): U = 
     store.foldMap(runInstruction)
 
 }

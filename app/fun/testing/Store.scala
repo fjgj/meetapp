@@ -68,14 +68,17 @@ object Interpreter{
 
   }
 
-  def run[U](store: MapStore)(program: Store[U]): Either[StoreError, U] = program match {
+  def run[U](store: MapStore)(program: StoreProgram[U]): (MapStore, Either[StoreError, U]) = program match {
     case Return(value) => 
-      Right(value)
-    case StoreAndThen(instruction, next) => 
-      val (newStore, result) = runInstruction(store)(instruction)
-      result.right.flatMap{ 
+      (store, Right(value))
+    case Execute(instruction) => 
+      runInstruction(store)(instruction)
+    case RunAndThen(program, next) => 
+      val (newStore, result) = run(store)(program)
+      result.fold(
+        error => (newStore, Left(error)),
         result => run(newStore)(next(result))
-      }
+      )
   }
 
   def runInstruction[U](store: MapStore)(inst: StoreInstruction[U]): (MapStore, Either[StoreError, U]) = 

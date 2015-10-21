@@ -18,12 +18,12 @@ trait Store extends logic.Store{
 
   def getGroup(gid: Int): Group = 
     DB.withSession { implicit session =>
-      group_table.byID(Some(gid)).firstOption.get
+      group_table.byID(Some(gid)).first
     }
    
   def getUser(uid: Int): User =  
     DB.withSession { implicit session =>
-      user_table.byID(Some(uid)).firstOption.get
+      user_table.byID(Some(uid)).first
     }
     
   def putJoin(join: JoinRequest): JoinRequest = 

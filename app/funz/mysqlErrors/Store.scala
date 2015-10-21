@@ -42,7 +42,7 @@ object Interpreter{
     }
   }
 
-  def run[T](store: Store[T]): \/[StoreError, T] = 
+  def run[T](store: StoreProgram[T]): \/[StoreError, T] = 
     DB.withSession { implicit session =>
       store.foldMap(RunInstruction.apply)
     }

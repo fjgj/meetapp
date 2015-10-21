@@ -5,19 +5,22 @@ import org.scalatest._
 import org.hablapps.meetup.common.logic._, Domain._
 import org.hablapps.meetup.fun.logic._, Services._
 
-class LogicSpec(tester: Store.Interpreter) extends FlatSpec with Matchers {
+class LogicSpec(tester: StoreProgram.Interpreter) extends FlatSpec with Matchers {
 
   "unirse a un grupo" should "devolver un error si el usuario no existe" in {
-    tester.run(join(JoinRequest(None, 1, 2))) should be(Left(NonExistentEntity(1)))
+    tester.run(join(JoinRequest(None, 1, 2))) should 
+      be(Left(NonExistentEntity(1)))
   }
 
-//   it should "devolver un error si el grupo no existe" in {
-//     val store1 = Interpreter.MapStore(
-//       User(Some(1), "user 1")
-//     )
+  // it should "devolver un error si el grupo no existe" in {
+  //   val initial = for {
+  //     user1 <- putUser(User(None,"user1"))
+  //   } yield user1
 
-//     Interpreter.run(store1)(join(JoinRequest(None, 1, 2))) should be(Left(NonExistentEntity(2))) 
-//   }
+  //   Interpreter.runFrom(initial){ user1 => 
+  //     join(JoinRequest(None, user1.uid, 2))
+  //   } should be(Left(NonExistentEntity(2))) 
+  // }
   
 //   "unirse a un grupo sin restricciones de entrada" should     
 //     "realizarse inmediatamente si el usuario no pertenece ya al mismo" in {

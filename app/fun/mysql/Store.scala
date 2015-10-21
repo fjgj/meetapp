@@ -18,12 +18,12 @@ object Interpreter{
       
       case GetGroup(gid: Int) => 
         DB.withSession { implicit session =>
-          group_table.byID(Some(gid)).firstOption.get
+          group_table.byID(Some(gid)).first
         }
       
       case GetUser(uid: Int) =>
         DB.withSession { implicit session =>
-          user_table.byID(Some(uid)).firstOption.get
+          user_table.byID(Some(uid)).first
         }
     
       case PutJoin(join: JoinRequest) => 
@@ -40,12 +40,38 @@ object Interpreter{
 
     }
 
-  def run[U](store: Store[U]): U = store match {
+  def run[U](store: StoreProgram[U]): U = store match {
     case Return(value) => 
       value
-    case StoreAndThen(instruction, next) => 
-      val result = runInstruction(instruction)
-      run(next(result))
+    case Execute(instruction) => 
+      runInstruction(instruction)
+    case RunAndThen(program, next) => 
+      run(next(run(program)))
+  }
+
+  def run2[U](store: StoreProgram[U]): U = store match {
+    case Execute(GetUser(uid: Int)) =>
+      DB.withSession { implicit session =>
+        user_table.byID(Some(uid)).first
+      }
+    case Execute(GetGroup(gid: Int)) => 
+      DB.withSession { implicit session =>
+        group_table.byID(Some(gid)).first
+      }
+    case Execute(PutJoin(join: JoinRequest)) => 
+      DB.withSession { implicit session =>
+        val maybeId = join_table returning join_table.map(_.jid) += join
+        join.copy(jid = maybeId)
+      }
+    case Execute(PutMember(member: Member)) =>
+      DB.withSession { implicit session =>
+        val maybeId = member_table returning member_table.map(_.mid) += member
+        member.copy(mid = maybeId)
+      }
+    case Return(value) => 
+      value
+    case RunAndThen(program, next) => 
+      run(next(run(program)))
   }
 
 }
