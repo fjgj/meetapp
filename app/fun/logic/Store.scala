@@ -32,10 +32,10 @@ object StoreProgram{
       right map (Right(_))
 
   def left[X,Y](program: StoreProgram[X]): StoreProgram[Either[X,Y]] = 
-    program flatMap (x => returns(Left[X,Y](x)))
+    program map (x => Left[X,Y](x))
 
   def right[X,Y](program: StoreProgram[Y]): StoreProgram[Either[X,Y]] = 
-    program flatMap (y => returns(Right[X,Y](y)))
+    program map (y => Right[X,Y](y))
 
   def returns[X](value: X): StoreProgram[X] = 
     Return(value)
