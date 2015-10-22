@@ -28,7 +28,7 @@ object Members extends Controller{
       case Left(joinRequest) => 
         Accepted(s"Join request $joinRequest, left pending for futher processing")
       case Right(member) => 
-          Created(Json.toJson(member)(Json.writes[Member]))
+        Created(Json.toJson(member)(Json.writes[Member]))
     }.recover{ 
       case error@NonExistentEntity(id) => 
         NotFound(s"${error.msg}")
