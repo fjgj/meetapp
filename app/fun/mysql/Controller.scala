@@ -14,7 +14,7 @@ object Members extends Controller{
   def add(gid: Int): Action[Int] =
     Action(parse.json[Int]) { 
       fromHTTP(gid)         andThen 
-      logic.Services.join   andThen
+      logic.Services.join[MeetupProgram]   andThen
       (program => Try(Interpreter.run(program))) andThen
       toHTTP
     }

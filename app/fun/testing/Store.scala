@@ -68,7 +68,7 @@ object Interpreter{
 
   }
 
-  def run[U](store: MapStore)(program: StoreProgram[U]): (MapStore, Either[StoreError, U]) = program match {
+  def run[U](store: MapStore)(program: MeetupProgram[U]): (MapStore, Either[StoreError, U]) = program match {
     case Return(value) => 
       (store, Right(value))
     case Execute(instruction) => 
@@ -81,7 +81,7 @@ object Interpreter{
       )
   }
 
-  def runInstruction[U](store: MapStore)(inst: StoreInstruction[U]): (MapStore, Either[StoreError, U]) = 
+  def runInstruction[U](store: MapStore)(inst: MeetupInstruction[U]): (MapStore, Either[StoreError, U]) = 
     inst match {
       
       case GetUser(id) => 
@@ -116,6 +116,9 @@ object Interpreter{
           pair => (pair._1, Right(pair._2))
         )
   
+      case Inform(user, msg) =>
+        (store, Right(println(s"$user: $msg")))
+
       case instruction => 
         (store, Left(GenericError(s"No interpretation for $instruction")))
     }

@@ -5,12 +5,12 @@ import org.scalatest._
 import org.hablapps.meetup.common.logic._, Domain._
 import org.hablapps.meetup.fun.logic._, Services._
 
-class LogicSpec(tester: StoreProgram.Interpreter) extends FlatSpec with Matchers {
+// class LogicSpec(tester: StoreProgram.Interpreter) extends FlatSpec with Matchers {
 
-  "unirse a un grupo" should "devolver un error si el usuario no existe" in {
-    tester.run(join(JoinRequest(None, 1, 2))) should 
-      be(Left(NonExistentEntity(1)))
-  }
+  // "unirse a un grupo" should "devolver un error si el usuario no existe" in {
+  //   tester.run(join(JoinRequest(None, 1, 2))) should 
+  //     be(Left(NonExistentEntity(1)))
+  // }
 
   // it should "devolver un error si el grupo no existe" in {
   //   val initial = for {
@@ -87,4 +87,4 @@ class LogicSpec(tester: StoreProgram.Interpreter) extends FlatSpec with Matchers
 //   //   //   Interpreter.run(store1)(join(JoinRequest(None, 1, 2))) must_== Left(NonExistentEntity(2))
 //   // }
 
-}
+// }
