@@ -2,6 +2,8 @@ name := """aula-virtual"""
 
 version := "1.0-SNAPSHOT"
 
+// requires java 1.8
+
 scalaVersion := "2.11.1"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
@@ -20,8 +22,7 @@ libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-nop" % "1.6.4",
   // "com.h2database" % "h2" % "1.3.170",
   "mysql" % "mysql-connector-java" % "5.1.26",
-  "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-  "com.hablapps" %% "funplay" % "0.1-SNAPSHOT"
+  "org.scala-lang" % "scala-compiler" % scalaVersion.value
 )
 
 libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.0-M3"
